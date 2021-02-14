@@ -55,14 +55,18 @@ function createTask(e) {
 
   taskNode.innerHTML = `<div class="w-100 mr-2">
                             <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">${inputTitleNode.value}</h5>
+                                <h5 id="currentTasks__title" class="mb-1">${
+                                  inputTitleNode.value
+                                }</h5>
                                 <div>
                                     <small class="mr-2">${checkPriority()} priority</small>
                                     <small>${createDate()}</small>
                                 </div>
 
                             </div>
-                            <p class="mb-1 w-100">${inputTextNode.value}</p>
+                            <p id="currentTasks__text" class="mb-1 w-100">${
+                              inputTextNode.value
+                            }</p>
                         </div>
                             <div class="dropdown m-2 dropleft">
                                 <button class="btn btn-secondary h-100" type="button" id="dropdownMenuItem1"
@@ -82,12 +86,39 @@ function createTask(e) {
   return taskNode;
 }
 
+function completeTask(e) {
+  if (e.target.classList.contains("btn-success")) {
+    for (let prop of e.currentTarget.children) {
+      let titleNode = prop.querySelector("#currentTasks__title");
+      let textNode = prop.querySelector("#currentTasks__text");
+      if (prop.dataset.task === e.target.dataset.task) {
+        titleNode.contentEditable = false;
+        textNode.contentEditable = false;
+        completedTasksNode.append(prop);
+      }
+    }
+  }
+}
+
+function editTask(e) {
+  if (e.target.classList.contains("btn-info")) {
+    for (let prop of e.currentTarget.children) {
+      let titleNode = prop.querySelector("#currentTasks__title");
+      let textNode = prop.querySelector("#currentTasks__text");
+      if (prop.dataset.task === e.target.dataset.task) {
+        titleNode.contentEditable = true;
+        textNode.contentEditable = true;
+      }
+    }
+  }
+}
+
 function removeTask(e) {
   if (e.target.classList.contains("btn-danger")) {
     if (confirm("Are you sure?")) {
       for (let prop of e.currentTarget.children) {
         if (prop.dataset.task === e.target.dataset.task) {
-          currentTasksNode.removeChild(prop);
+          e.currentTarget.removeChild(prop);
         }
       }
     }
@@ -101,5 +132,8 @@ function resetForm(form) {
   });
 }
 
-formNode.addEventListener("submit", createTask);
+formNode.addEventListener("submit", createTask.bind(this));
 currentTasksNode.addEventListener("click", removeTask);
+completedTasksNode.addEventListener("click", removeTask);
+currentTasksNode.addEventListener("click", editTask);
+currentTasksNode.addEventListener("click", completeTask);
