@@ -45,11 +45,12 @@ function completeTask(e) {
       let titleNode = prop.querySelector("#currentTasks__title");
       let textNode = prop.querySelector("#currentTasks__text");
       if (prop.dataset.task === e.target.dataset.task) {
-        titleNode.contentEditable = false;
-        textNode.contentEditable = false;
         let idIndex = array
           .map((item) => item.id)
           .indexOf(Number(prop.dataset.task));
+
+        titleNode.contentEditable = false;
+        textNode.contentEditable = false;
 
         array[idIndex].isComplete = true;
 
@@ -139,8 +140,18 @@ function editTask(e) {
       let titleNode = prop.querySelector("#currentTasks__title");
       let textNode = prop.querySelector("#currentTasks__text");
       if (prop.dataset.task === e.target.dataset.task) {
+        let idIndex = array
+          .map((item) => item.id)
+          .indexOf(Number(prop.dataset.task));
+
         titleNode.contentEditable = true;
         textNode.contentEditable = true;
+
+        setInterval(() => {
+          array[idIndex].title = titleNode.innerHTML;
+          array[idIndex].text = textNode.innerHTML;
+          localStorage.setItem("tasks", JSON.stringify(array));
+        }, 2000);
       }
     }
   }
@@ -207,9 +218,12 @@ function sortArray() {
 }
 
 formNode.addEventListener("submit", submitForm);
+
 currentTasksNode.addEventListener("click", removeTask);
 completedTasksNode.addEventListener("click", removeTask);
+
 currentTasksNode.addEventListener("click", editTask);
+
 currentTasksNode.addEventListener("click", completeTask);
 
 btnSortInc.addEventListener("click", sortArray);
