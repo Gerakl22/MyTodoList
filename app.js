@@ -1,6 +1,14 @@
 const currentTasksNode = document.querySelector("#currentTasks");
 const completedTasksNode = document.querySelector("#completedTasks");
 
+const toDoNode = document.querySelector("#toDo");
+const completedNode = document.querySelector("#completed");
+
+const spanToDoNode = document.createElement("span");
+const spanCompletedNode = spanToDoNode.cloneNode();
+toDoNode.appendChild(spanToDoNode);
+completedNode.appendChild(spanCompletedNode);
+
 const formNode = document.querySelector("#modalForm");
 const inputTitleNode = document.querySelector("#inputTitle");
 const inputTextNode = document.querySelector("#inputText");
@@ -11,12 +19,10 @@ const highPriorityNode = document.querySelector("#High");
 const btnSortDesc = document.querySelector("#btnSortDesc");
 const btnSortInc = document.querySelector("#btnSortInc");
 
-let array = [];
-
-let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let array = JSON.parse(localStorage.getItem("tasks")) || [];
 
 if (localStorage.getItem("tasks")) {
-  tasks.map((task) => createTask(task));
+  array.map((item) => createTask(item));
 }
 
 function appendZero(n) {
@@ -31,6 +37,39 @@ function checkPriority() {
   } else {
     return highPriorityNode.value;
   }
+}
+
+function completeTask(e) {
+  if (e.target.classList.contains("btn-success")) {
+    for (let prop of e.currentTarget.children) {
+      let titleNode = prop.querySelector("#currentTasks__title");
+      let textNode = prop.querySelector("#currentTasks__text");
+      if (prop.dataset.task === e.target.dataset.task) {
+        titleNode.contentEditable = false;
+        textNode.contentEditable = false;
+        let idIndex = array
+          .map((item) => item.id)
+          .indexOf(Number(prop.dataset.task));
+
+        array[idIndex].isComplete = true;
+
+        localStorage.setItem("tasks", JSON.stringify(array));
+
+        completedTasksNode.append(prop);
+
+        countTasks();
+      }
+    }
+  }
+}
+
+function countTasks() {
+  const arraySpanToDoNode = array.filter((item) => item.isComplete === false);
+  const arraySpanCompletedNode = array.filter(
+    (item) => item.isComplete === true
+  );
+  spanToDoNode.textContent = arraySpanToDoNode.length;
+  spanCompletedNode.textContent = arraySpanCompletedNode.length;
 }
 
 function createDate() {
@@ -85,44 +124,13 @@ function createTask(task) {
                                 </div>
                             </div>`;
 
-  currentTasksNode.append(taskNode);
+  task.isComplete === false
+    ? currentTasksNode.append(taskNode)
+    : completedTasksNode.append(taskNode);
+
+  countTasks();
 
   return taskNode;
-}
-
-function submitForm(e) {
-  e.preventDefault();
-
-  let task = {
-    id: createId(),
-    title: inputTitleNode.value,
-    priority: checkPriority(),
-    date: createDate(),
-    text: inputTextNode.value,
-    color: createRandomColor(),
-  };
-
-  array.push(task);
-
-  localStorage.setItem("tasks", JSON.stringify(array));
-
-  createTask(task);
-
-  resetForm(formNode);
-}
-
-function completeTask(e) {
-  if (e.target.classList.contains("btn-success")) {
-    for (let prop of e.currentTarget.children) {
-      let titleNode = prop.querySelector("#currentTasks__title");
-      let textNode = prop.querySelector("#currentTasks__text");
-      if (prop.dataset.task === e.target.dataset.task) {
-        titleNode.contentEditable = false;
-        textNode.contentEditable = false;
-        completedTasksNode.append(prop);
-      }
-    }
-  }
 }
 
 function editTask(e) {
@@ -138,6 +146,28 @@ function editTask(e) {
   }
 }
 
+function submitForm(e) {
+  e.preventDefault();
+
+  let task = {
+    id: createId(),
+    title: inputTitleNode.value,
+    priority: checkPriority(),
+    date: createDate(),
+    text: inputTextNode.value,
+    color: createRandomColor(),
+    isComplete: false,
+  };
+
+  array.push(task);
+
+  localStorage.setItem("tasks", JSON.stringify(array));
+
+  createTask(task);
+
+  resetForm(formNode);
+}
+
 function removeTask(e) {
   if (e.target.classList.contains("btn-danger")) {
     if (confirm("Are you sure?")) {
@@ -151,6 +181,8 @@ function removeTask(e) {
           localStorage.setItem("tasks", JSON.stringify(array));
 
           e.currentTarget.removeChild(prop);
+
+          countTasks();
         }
       }
     }
