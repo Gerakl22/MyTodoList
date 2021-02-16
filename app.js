@@ -157,26 +157,39 @@ function editTask(e) {
   }
 }
 
-function submitForm(e) {
-  e.preventDefault();
+function handleSort(e) {
+  if (e.currentTarget === btnSortInc) {
+    sortInc();
+    console.log(array);
+  }
 
-  let task = {
-    id: createId(),
-    title: inputTitleNode.value,
-    priority: checkPriority(),
-    date: createDate(),
-    text: inputTextNode.value,
-    color: createRandomColor(),
-    isComplete: false,
-  };
+  if (e.currentTarget === btnSortDesc) {
+    sortDesc();
+    console.log(array);
+  }
 
-  array.push(task);
+  let liArrayNode = document.querySelectorAll("li");
+  let ulArrayNode = document.querySelectorAll("ul");
 
-  localStorage.setItem("tasks", JSON.stringify(array));
+  for (let i = 0; i < ulArrayNode.length; i++) {
+    for (let j = 0; j < liArrayNode.length; j++) {
+      console.log(liArrayNode[i]);
+      liArrayNode[j].remove(ulArrayNode[i]);
+    }
+  }
+  array.map((item) => createTask(item));
+}
 
-  createTask(task);
+function parseDate(date) {
+  let arrDate = Array.from(date.replace(/\D/g, ""));
 
-  resetForm(formNode);
+  let year = arrDate.slice(-4).join("");
+  let month = arrDate.slice(-6, -4).join("");
+  let day = arrDate.slice(-8, -6).join("");
+  let hour = arrDate.slice(0, 2).join("");
+  let min = arrDate.slice(2, 4).join("");
+
+  return Date.parse(`${year}-${month}-${day}T${hour}:${min}:00`);
 }
 
 function removeTask(e) {
@@ -207,14 +220,34 @@ function resetForm(form) {
   });
 }
 
-function sortArray() {
-  array.sort((a, b) => {
-    let aDate = new Date(a.date);
-    let bDate = new Date(b.date);
-    console.log(a.date);
-    console.log(b.date);
-    // return aDate - bDate;
-  });
+function sortDesc() {
+  array.sort((a, b) => parseDate(b.date) - parseDate(a.date));
+}
+
+function sortInc() {
+  array.sort((a, b) => parseDate(a.date) - parseDate(b.date));
+}
+
+function submitForm(e) {
+  e.preventDefault();
+
+  let task = {
+    id: createId(),
+    title: inputTitleNode.value,
+    priority: checkPriority(),
+    date: createDate(),
+    text: inputTextNode.value,
+    color: createRandomColor(),
+    isComplete: false,
+  };
+
+  array.push(task);
+
+  localStorage.setItem("tasks", JSON.stringify(array));
+
+  createTask(task);
+
+  resetForm(formNode);
 }
 
 formNode.addEventListener("submit", submitForm);
@@ -226,6 +259,7 @@ currentTasksNode.addEventListener("click", editTask);
 
 currentTasksNode.addEventListener("click", completeTask);
 
-btnSortInc.addEventListener("click", sortArray);
+btnSortInc.addEventListener("click", handleSort);
+btnSortDesc.addEventListener("click", handleSort);
 
 console.log(array);
