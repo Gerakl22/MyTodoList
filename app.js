@@ -1,3 +1,6 @@
+const bodyNode = document.body;
+const navigationNode = document.querySelector("#navigation");
+
 const currentTasksNode = document.querySelector("#currentTasks");
 const completedTasksNode = document.querySelector("#completedTasks");
 
@@ -9,6 +12,8 @@ const spanCompletedNode = spanToDoNode.cloneNode();
 toDoNode.appendChild(spanToDoNode);
 completedNode.appendChild(spanCompletedNode);
 
+const exampleModalContentNode = document.querySelector("#exampleModalContent");
+
 const formNode = document.querySelector("#modalForm");
 const inputTitleNode = document.querySelector("#inputTitle");
 const inputTextNode = document.querySelector("#inputText");
@@ -18,15 +23,33 @@ const highPriorityNode = document.querySelector("#High");
 
 const btnSortDesc = document.querySelector("#btnSortDesc");
 const btnSortInc = document.querySelector("#btnSortInc");
+const btnChangeTheme = document.querySelector("#btnChangeTheme");
 
 let array = JSON.parse(localStorage.getItem("tasks")) || [];
+let isLight = JSON.parse(localStorage.getItem("theme")) || true;
 
 if (localStorage.getItem("tasks")) {
   array.map((item) => createTask(item));
+  lightTheme();
+} else {
+  darkTheme();
+}
+
+if (localStorage.getItem("theme") === "true" || localStorage.length === 0) {
+  lightTheme();
+} else {
+  isLight = false;
+  darkTheme();
 }
 
 function appendZero(n) {
   return n < 10 ? `0${n}` : n;
+}
+
+function changeTheme() {
+  isLight = !isLight;
+  isLight ? lightTheme() : darkTheme();
+  localStorage.setItem("theme", JSON.stringify(isLight));
 }
 
 function checkPriority() {
@@ -42,17 +65,16 @@ function checkPriority() {
 function completeTask(e) {
   if (e.target.classList.contains("btn-success")) {
     for (let prop of e.currentTarget.children) {
-      let titleNode = prop.querySelector("#currentTasks__title");
-      let textNode = prop.querySelector("#currentTasks__text");
+      let btnInfoNode = prop.querySelector(".btn-info");
       if (prop.dataset.task === e.target.dataset.task) {
         let idIndex = array
           .map((item) => item.id)
           .indexOf(Number(prop.dataset.task));
 
-        titleNode.contentEditable = false;
-        textNode.contentEditable = false;
-
         array[idIndex].isComplete = true;
+
+        e.target.remove(prop);
+        btnInfoNode.remove(prop);
 
         localStorage.setItem("tasks", JSON.stringify(array));
 
@@ -102,7 +124,8 @@ function createTask(task) {
   taskNode.className = "list-group-item d-flex w-100 mb-2";
   taskNode.style.backgroundColor = task.color;
 
-  taskNode.innerHTML = `<div class="w-100 mr-2">
+  if (task.isComplete === false) {
+    taskNode.innerHTML = `<div class="w-100 mr-2">
                             <div class="d-flex w-100 justify-content-between">
                                 <h5 id="currentTasks__title" class="mb-1">${task.title}</h5>
                                 <div>
@@ -124,34 +147,58 @@ function createTask(task) {
                                     <button data-task=${task.id} type="button" class="btn btn-danger w-100">Delete</button>
                                 </div>
                             </div>`;
+    currentTasksNode.append(taskNode);
+  } else {
+    taskNode.innerHTML = `<div class="w-100 mr-2">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 id="currentTasks__title" class="mb-1">${task.title}</h5>
+                                <div>
+                                    <small class="mr-2">${task.priority} priority</small>
+                                    <small id="currentTasks__Date">${task.date}</small>
+                                </div>
 
-  task.isComplete === false
-    ? currentTasksNode.append(taskNode)
-    : completedTasksNode.append(taskNode);
+                            </div>
+                            <p id="currentTasks__text" class="mb-1 w-100">${task.text}</p>
+                        </div>
+                            <div class="dropdown m-2 dropleft">
+                                <button class="btn btn-secondary h-100" type="button" id="dropdownMenuItem1"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div class="dropdown-menu p-2 flex-column" aria-labelledby="dropdownMenuItem1">
+                                    <button data-task=${task.id} type="button" class="btn btn-danger w-100">Delete</button>
+                                </div>
+                            </div>`;
+
+    completedTasksNode.append(taskNode);
+  }
 
   countTasks();
 
   return taskNode;
 }
 
+function darkTheme() {
+  bodyNode.style.cssText = `background-color: #0F1A20; color: #c5cddb`;
+  exampleModalContentNode.style.cssText = `background-color: #0F1A20; color: #c5cddb`;
+  btnChangeTheme.textContent = "LIGHT THEME";
+  btnChangeTheme.classList.add("btn-light");
+  btnChangeTheme.classList.remove("btn-dark");
+  navigationNode.classList.remove("bg-light");
+  navigationNode.classList.add("bg-dark");
+}
+
 function editTask(e) {
   if (e.target.classList.contains("btn-info")) {
     for (let prop of e.currentTarget.children) {
-      let titleNode = prop.querySelector("#currentTasks__title");
-      let textNode = prop.querySelector("#currentTasks__text");
       if (prop.dataset.task === e.target.dataset.task) {
         let idIndex = array
           .map((item) => item.id)
           .indexOf(Number(prop.dataset.task));
 
-        titleNode.contentEditable = true;
-        textNode.contentEditable = true;
-
-        setInterval(() => {
-          array[idIndex].title = titleNode.innerHTML;
-          array[idIndex].text = textNode.innerHTML;
-          localStorage.setItem("tasks", JSON.stringify(array));
-        }, 2000);
+        array[idIndex].title = titleNode.innerHTML;
+        array[idIndex].text = textNode.innerHTML;
+        localStorage.setItem("tasks", JSON.stringify(array));
       }
     }
   }
@@ -160,12 +207,10 @@ function editTask(e) {
 function handleSort(e) {
   if (e.currentTarget === btnSortInc) {
     sortInc();
-    console.log(array);
   }
 
   if (e.currentTarget === btnSortDesc) {
     sortDesc();
-    console.log(array);
   }
 
   let liArrayNode = document.querySelectorAll("li");
@@ -173,11 +218,23 @@ function handleSort(e) {
 
   for (let i = 0; i < ulArrayNode.length; i++) {
     for (let j = 0; j < liArrayNode.length; j++) {
-      console.log(liArrayNode[i]);
       liArrayNode[j].remove(ulArrayNode[i]);
     }
   }
+
   array.map((item) => createTask(item));
+
+  localStorage.setItem("tasks", JSON.stringify(array));
+}
+
+function lightTheme() {
+  bodyNode.style.cssText = `background-color: #fff; color: #3D3D3D`;
+  exampleModalContentNode.style.cssText = `background-color: #fff; color: #3D3D3D`;
+  btnChangeTheme.textContent = "DARK THEME";
+  btnChangeTheme.classList.remove("btn-light");
+  btnChangeTheme.classList.add("btn-dark");
+  navigationNode.classList.remove("bg-dark");
+  navigationNode.classList.add("bg-light");
 }
 
 function parseDate(date) {
@@ -261,5 +318,6 @@ currentTasksNode.addEventListener("click", completeTask);
 
 btnSortInc.addEventListener("click", handleSort);
 btnSortDesc.addEventListener("click", handleSort);
+btnChangeTheme.addEventListener("click", changeTheme);
 
 console.log(array);
