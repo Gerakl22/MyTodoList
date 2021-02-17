@@ -12,6 +12,7 @@ const spanCompletedNode = spanToDoNode.cloneNode();
 toDoNode.appendChild(spanToDoNode);
 completedNode.appendChild(spanCompletedNode);
 
+const exampleModalNode = document.querySelector("#exampleModal");
 const exampleModalContentNode = document.querySelector("#exampleModalContent");
 
 const formNode = document.querySelector("#modalForm");
@@ -188,6 +189,32 @@ function darkTheme() {
   navigationNode.classList.add("bg-dark");
 }
 
+function openAndEditTask(task, id) {
+  bodyNode.classList.add("modal-open");
+  exampleModalNode.classList.add("show");
+  exampleModalNode.style.cssText = `aria-modal="true"; padding-right: 16px; display: block`;
+  exampleModalContentNode.setAttribute("data-task", id);
+  inputTitleNode.value = task.title;
+  inputTitleNode.setAttribute("data-task", id);
+  inputTextNode.value = task.text;
+  inputTextNode.setAttribute("data-task", id);
+
+  let namePriorityNode = document.querySelectorAll("input[name=gridRadios]");
+
+  for (let name of namePriorityNode) {
+    name.setAttribute("data-task", id);
+    if (name.value === task.priority) {
+      name.checked = true;
+    }
+  }
+
+  let modalBackDropNode = document.createElement("div");
+  modalBackDropNode.classList.add("modal-backdrop");
+  modalBackDropNode.classList.add("fade");
+  modalBackDropNode.classList.add("show");
+  bodyNode.append(modalBackDropNode);
+}
+
 function editTask(e) {
   if (e.target.classList.contains("btn-info")) {
     for (let prop of e.currentTarget.children) {
@@ -196,8 +223,12 @@ function editTask(e) {
           .map((item) => item.id)
           .indexOf(Number(prop.dataset.task));
 
-        array[idIndex].title = titleNode.innerHTML;
-        array[idIndex].text = textNode.innerHTML;
+        openAndEditTask(array[idIndex], prop.dataset.task);
+
+        let btnSaveNode = exampleModalNode.querySelector(".btn-primary");
+        btnSaveNode.textContent = "Save Task";
+        btnSaveNode.setAttribute("data-task", prop.dataset.task);
+
         localStorage.setItem("tasks", JSON.stringify(array));
       }
     }
