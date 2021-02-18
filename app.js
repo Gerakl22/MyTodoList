@@ -228,7 +228,7 @@ function editTask(e) {
           .map((item) => item.id)
           .indexOf(Number(prop.dataset.task));
 
-        openEditTask(array[idIndex], prop.dataset.task);
+        openEditTask(array[idIndex], Number(prop.dataset.task));
 
         let modalBackDropNode = document.createElement("div");
         modalBackDropNode.classList.add("modal-backdrop");
@@ -243,9 +243,6 @@ function editTask(e) {
         btnSaveNode.addEventListener("click", (e) => {
           if (e.target.dataset.task === prop.dataset.task) {
           }
-
-          // inputTitleNode.textContent = array[idIndex].title;
-          // inputTextNode.textContent = array[idIndex].text;
 
           btnSaveNode.textContent = "Add task";
           closeEditTask(modalBackDropNode);
@@ -310,6 +307,7 @@ function removeTask(e) {
           let idIndex = array
             .map((item) => item.id)
             .indexOf(Number(prop.dataset.task));
+
           array.splice(idIndex, 1);
 
           localStorage.setItem("tasks", JSON.stringify(array));
@@ -349,20 +347,15 @@ function submitForm(e) {
     text: inputTextNode.value,
     color: createRandomColor(),
     isComplete: false,
-    isEdit: false,
   };
 
-  if (task.isEdit === false) {
-    array.push(task);
+  array.push(task);
 
-    localStorage.setItem("tasks", JSON.stringify(array));
+  localStorage.setItem("tasks", JSON.stringify(array));
 
-    createTask(task);
+  createTask(task);
 
-    resetForm(formNode);
-  } else {
-    editTask();
-  }
+  resetForm(formNode);
 }
 
 formNode.addEventListener("submit", submitForm);
@@ -370,7 +363,7 @@ formNode.addEventListener("submit", submitForm);
 currentTasksNode.addEventListener("click", removeTask);
 completedTasksNode.addEventListener("click", removeTask);
 
-currentTasksNode.addEventListener("click", editTask);
+// currentTasksNode.addEventListener("click", editTask);
 
 currentTasksNode.addEventListener("click", completeTask);
 
