@@ -21,6 +21,7 @@ const inputTextNode = document.querySelector("#inputText");
 const lowPriorityNode = document.querySelector("#Low");
 const mediumPriorityNode = document.querySelector("#Medium");
 const highPriorityNode = document.querySelector("#High");
+const divBtnModalNode = document.querySelector("#divBtnModal");
 
 const btnSortDesc = document.querySelector("#btnSortDesc");
 const btnSortInc = document.querySelector("#btnSortInc");
@@ -189,7 +190,7 @@ function darkTheme() {
   navigationNode.classList.add("bg-dark");
 }
 
-function openAndEditTask(task, id) {
+function openEditTask(task, id) {
   bodyNode.classList.add("modal-open");
   exampleModalNode.classList.add("show");
   exampleModalNode.style.cssText = `aria-modal="true"; padding-right: 16px; display: block`;
@@ -207,12 +208,16 @@ function openAndEditTask(task, id) {
       name.checked = true;
     }
   }
+}
 
-  let modalBackDropNode = document.createElement("div");
-  modalBackDropNode.classList.add("modal-backdrop");
-  modalBackDropNode.classList.add("fade");
-  modalBackDropNode.classList.add("show");
-  bodyNode.append(modalBackDropNode);
+function closeEditTask(modalBackDrop) {
+  bodyNode.classList.remove("modal-open");
+  exampleModalNode.classList.remove("show");
+  exampleModalNode.style.cssText = `aria-hidden="true"; display: none`;
+
+  modalBackDrop.classList.remove("modal-backdrop");
+  modalBackDrop.classList.remove("fade");
+  modalBackDrop.classList.remove("show");
 }
 
 function editTask(e) {
@@ -223,11 +228,28 @@ function editTask(e) {
           .map((item) => item.id)
           .indexOf(Number(prop.dataset.task));
 
-        openAndEditTask(array[idIndex], prop.dataset.task);
+        openEditTask(array[idIndex], prop.dataset.task);
+
+        let modalBackDropNode = document.createElement("div");
+        modalBackDropNode.classList.add("modal-backdrop");
+        modalBackDropNode.classList.add("fade");
+        modalBackDropNode.classList.add("show");
+        bodyNode.append(modalBackDropNode);
 
         let btnSaveNode = exampleModalNode.querySelector(".btn-primary");
-        btnSaveNode.textContent = "Save Task";
+        btnSaveNode.textContent = "Save task";
         btnSaveNode.setAttribute("data-task", prop.dataset.task);
+
+        btnSaveNode.addEventListener("click", (e) => {
+          if (e.target.dataset.task === prop.dataset.task) {
+          }
+
+          // inputTitleNode.textContent = array[idIndex].title;
+          // inputTextNode.textContent = array[idIndex].text;
+
+          btnSaveNode.textContent = "Add task";
+          closeEditTask(modalBackDropNode);
+        });
 
         localStorage.setItem("tasks", JSON.stringify(array));
       }
@@ -327,15 +349,20 @@ function submitForm(e) {
     text: inputTextNode.value,
     color: createRandomColor(),
     isComplete: false,
+    isEdit: false,
   };
 
-  array.push(task);
+  if (task.isEdit === false) {
+    array.push(task);
 
-  localStorage.setItem("tasks", JSON.stringify(array));
+    localStorage.setItem("tasks", JSON.stringify(array));
 
-  createTask(task);
+    createTask(task);
 
-  resetForm(formNode);
+    resetForm(formNode);
+  } else {
+    editTask();
+  }
 }
 
 formNode.addEventListener("submit", submitForm);
