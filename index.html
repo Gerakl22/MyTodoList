@@ -22,9 +22,9 @@
         <nav id="navigation" class="navbar navbar-light">
             <h1>MyToDoList</h1>
             <div class="d-flex">
-                <button type="button" id="btnSortDesc" class="btn btn-primary mx-2"><i
+                <button type="button" id="btnSortDSC" class="btn btn-primary mx-2"><i
                         class="fas fa-sort-numeric-up-alt"></i></button>
-                <button type="button" id="btnSortInc" class="btn btn-primary"><i
+                <button type="button" id="btnSortACS" class="btn btn-primary"><i
                         class="fas fa-sort-numeric-up"></i></button>
             </div>
             <div class="d-flex">
@@ -37,8 +37,10 @@
                         aria-haspopup="true" aria-expanded="false">
                         <i class="fas fa-cog"></i>
                     </button>
-                    <div class="dropdown-menu p-2 dropdown-menu-right" aria-labelledby="dropdownMenuSettings">
-                        <button id="btnChangeTheme" class="btn"></button>
+                    <div class="dropdown-menu p-3 dropdown-menu-right" aria-labelledby="dropdownMenuSettings">
+                        <button data-theme="light" class="btn btn-switch mb-2 btn-light">Light THEME</button>
+                        <button data-theme="dark" class="btn btn-switch btn-dark">DARK THEME</button>
+
                     </div>
                 </div>
             </div>

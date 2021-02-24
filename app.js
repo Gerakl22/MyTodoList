@@ -1,57 +1,49 @@
 const bodyNode = document.body;
-const navigationNode = document.querySelector("#navigation");
+const navigationNode = document.getElementById("navigation");
 
-const currentTasksNode = document.querySelector("#currentTasks");
-const completedTasksNode = document.querySelector("#completedTasks");
+const currentTasksNode = document.getElementById("currentTasks");
+const completedTasksNode = document.getElementById("completedTasks");
 
-const toDoNode = document.querySelector("#toDo");
-const completedNode = document.querySelector("#completed");
+const toDoNode = document.getElementById("toDo");
+const completedNode = document.getElementById("completed");
 
 const spanToDoNode = document.createElement("span");
 const spanCompletedNode = spanToDoNode.cloneNode();
 toDoNode.appendChild(spanToDoNode);
 completedNode.appendChild(spanCompletedNode);
 
-const exampleModalNode = document.querySelector("#exampleModal");
-const exampleModalContentNode = document.querySelector("#exampleModalContent");
+const exampleModalNode = document.getElementById("exampleModal");
+const exampleModalContentNode = document.getElementById("exampleModalContent");
 
-const formNode = document.querySelector("#modalForm");
-const inputTitleNode = document.querySelector("#inputTitle");
-const inputTextNode = document.querySelector("#inputText");
-const lowPriorityNode = document.querySelector("#Low");
-const mediumPriorityNode = document.querySelector("#Medium");
-const highPriorityNode = document.querySelector("#High");
-const divBtnModalNode = document.querySelector("#divBtnModal");
+const formNode = document.getElementById("modalForm");
+const inputTitleNode = document.getElementById("inputTitle");
+const inputTextNode = document.getElementById("inputText");
+const lowPriorityNode = document.getElementById("Low");
+const mediumPriorityNode = document.getElementById("Medium");
+const highPriorityNode = document.getElementById("High");
+const divBtnModalNode = document.getElementById("divBtnModal");
 
-const btnSortDesc = document.querySelector("#btnSortDesc");
-const btnSortInc = document.querySelector("#btnSortInc");
-const btnChangeTheme = document.querySelector("#btnChangeTheme");
+const btnSortDSCNode = document.getElementById("btnSortDSC");
+const btnSortACSNode = document.getElementById("btnSortACS");
+const btnsSwitchThemeNode = document.querySelectorAll(".btn-switch");
 
 let array = JSON.parse(localStorage.getItem("tasks")) || [];
-let isLight = JSON.parse(localStorage.getItem("theme")) || true;
+let theme = JSON.parse(localStorage.getItem("theme"));
 
 if (localStorage.getItem("tasks")) {
-  array.map((item) => createTask(item));
-  lightTheme();
-} else {
-  darkTheme();
+  array.forEach((item) => createTask(item));
 }
 
-if (localStorage.getItem("theme") === "true" || localStorage.length === 0) {
-  lightTheme();
-} else {
-  isLight = false;
-  darkTheme();
-}
+theme === null ? setTheme("light") : setTheme(theme);
 
 function appendZero(n) {
   return n < 10 ? `0${n}` : n;
 }
 
 function changeTheme() {
-  isLight = !isLight;
-  isLight ? lightTheme() : darkTheme();
-  localStorage.setItem("theme", JSON.stringify(isLight));
+  let theme = this.dataset.theme;
+  setTheme(theme);
+  localStorage.setItem("theme", JSON.stringify(theme));
 }
 
 function checkPriority() {
@@ -66,24 +58,21 @@ function checkPriority() {
 
 function completeTask(e) {
   if (e.target.classList.contains("btn-success")) {
-    for (let prop of e.currentTarget.children) {
-      let btnInfoNode = prop.querySelector(".btn-info");
-      if (prop.dataset.task === e.target.dataset.task) {
-        let idIndex = array
-          .map((item) => item.id)
-          .indexOf(Number(prop.dataset.task));
+    let liNode = e.target.parentNode.parentNode.parentNode;
+    let btnInfoNode = liNode.querySelector(".btn-info");
+    if (liNode.dataset.task === e.target.dataset.task) {
+      array.find(
+        (task) => task.id === Number(liNode.dataset.task)
+      ).isComplete = true;
 
-        array[idIndex].isComplete = true;
+      e.target.remove(liNode);
+      btnInfoNode.remove(liNode);
 
-        e.target.remove(prop);
-        btnInfoNode.remove(prop);
+      completedTasksNode.append(liNode);
 
-        localStorage.setItem("tasks", JSON.stringify(array));
+      localStorage.setItem("tasks", JSON.stringify(array));
 
-        completedTasksNode.append(prop);
-
-        countTasks();
-      }
+      countTasks();
     }
   }
 }
@@ -95,6 +84,24 @@ function countTasks() {
   );
   spanToDoNode.textContent = arraySpanToDoNode.length;
   spanCompletedNode.textContent = arraySpanCompletedNode.length;
+}
+
+function createBtnForIsCompleteTask(isComplete, id) {
+  if (isComplete === false) {
+    const threeBtnNode = `<div class="dropdown-menu p-2 flex-column" aria-labelledby="dropdownMenuItem1">
+                            <button data-task=${id} type="button" class="btn btn-success w-100">Complete</button>
+                            <button data-task=${id} type="button" class="btn btn-info w-100 my-2">Edit</button>
+                            <button data-task=${id} type="button" class="btn btn-danger w-100">Delete</button>
+                        </div>`;
+
+    return threeBtnNode;
+  } else {
+    const oneBtnNode = `<div class="dropdown-menu p-2 flex-column" aria-labelledby="dropdownMenuItem1">
+                            <button data-task=${id} type="button" class="btn btn-danger w-100">Delete</button>
+                        </div>`;
+
+    return oneBtnNode;
+  }
 }
 
 function createDate() {
@@ -121,147 +128,115 @@ function createRandomColor() {
 }
 
 function createTask(task) {
-  let taskNode = document.createElement("li");
-  taskNode.setAttribute("data-task", task.id);
-  taskNode.className = "list-group-item d-flex w-100 mb-2";
-  taskNode.style.backgroundColor = task.color;
-
-  if (task.isComplete === false) {
-    taskNode.innerHTML = `<div class="w-100 mr-2">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 id="currentTasks__title" class="mb-1">${task.title}</h5>
-                                <div>
-                                    <small class="mr-2">${task.priority} priority</small>
-                                    <small id="currentTasks__Date">${task.date}</small>
+  const taskNode = `<li data-task=${
+    task.id
+  }  class="list-group-item d-flex w-100 mb-2" style="background-color:${
+    task.color
+  }">
+  <div class="w-100 mr-2"><div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1 task__title">${task.title}</h5>
+                                <div> <small data-task=${
+                                  task.id
+                                } class="mr-2 task__priority">${
+    task.priority
+  } priority</small>
+                                    <small>${task.date}</small>
                                 </div>
-
                             </div>
-                            <p id="currentTasks__text" class="mb-1 w-100">${task.text}</p>
+                            <p data-task=${
+                              task.id
+                            } class="mb-1 w-100 task__text">${task.text}</p>
                         </div>
                             <div class="dropdown m-2 dropleft">
                                 <button class="btn btn-secondary h-100" type="button" id="dropdownMenuItem1"
                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
-                                <div class="dropdown-menu p-2 flex-column" aria-labelledby="dropdownMenuItem1">
-                                    <button data-task=${task.id} type="button" class="btn btn-success w-100">Complete</button>
-                                    <button data-task=${task.id} type="button" class="btn btn-info w-100 my-2">Edit</button>
-                                    <button data-task=${task.id} type="button" class="btn btn-danger w-100">Delete</button>
-                                </div>
-                            </div>`;
-    currentTasksNode.append(taskNode);
-  } else {
-    taskNode.innerHTML = `<div class="w-100 mr-2">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 id="currentTasks__title" class="mb-1">${task.title}</h5>
-                                <div>
-                                    <small class="mr-2">${task.priority} priority</small>
-                                    <small id="currentTasks__Date">${task.date}</small>
-                                </div>
-
+                               ${createBtnForIsCompleteTask(
+                                 task.isComplete,
+                                 task.id
+                               )}
                             </div>
-                            <p id="currentTasks__text" class="mb-1 w-100">${task.text}</p>
-                        </div>
-                            <div class="dropdown m-2 dropleft">
-                                <button class="btn btn-secondary h-100" type="button" id="dropdownMenuItem1"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <div class="dropdown-menu p-2 flex-column" aria-labelledby="dropdownMenuItem1">
-                                    <button data-task=${task.id} type="button" class="btn btn-danger w-100">Delete</button>
-                                </div>
-                            </div>`;
+                            </li>`;
 
-    completedTasksNode.append(taskNode);
-  }
+  task.isComplete === false
+    ? (currentTasksNode.innerHTML = currentTasksNode.innerHTML + taskNode)
+    : (completedTasksNode.innerHTML = completedTasksNode.innerHTML + taskNode);
 
   countTasks();
 
   return taskNode;
 }
 
-function darkTheme() {
-  bodyNode.style.cssText = `background-color: #0F1A20; color: #c5cddb`;
-  exampleModalContentNode.style.cssText = `background-color: #0F1A20; color: #c5cddb`;
-  btnChangeTheme.textContent = "LIGHT THEME";
-  btnChangeTheme.classList.add("btn-light");
-  btnChangeTheme.classList.remove("btn-dark");
-  navigationNode.classList.remove("bg-light");
-  navigationNode.classList.add("bg-dark");
-}
+// function saveEditTask(modalBackDropNode, task, id) {
+//   task.title = inputTitleNode.value;
+//   task.text = inputTextNode.value;
+//   task.isEdit = true;
 
-function openEditTask(task, id) {
-  bodyNode.classList.add("modal-open");
-  exampleModalNode.classList.add("show");
-  exampleModalNode.style.cssText = `aria-modal="true"; padding-right: 16px; display: block`;
-  exampleModalContentNode.setAttribute("data-task", id);
-  inputTitleNode.value = task.title;
-  inputTitleNode.setAttribute("data-task", id);
-  inputTextNode.value = task.text;
-  inputTextNode.setAttribute("data-task", id);
+//   let namePriorityNode = document.querySelectorAll("input[name=gridRadios]");
 
-  let namePriorityNode = document.querySelectorAll("input[name=gridRadios]");
-
-  for (let name of namePriorityNode) {
-    name.setAttribute("data-task", id);
-    if (name.value === task.priority) {
-      name.checked = true;
-    }
-  }
-}
-
-function closeEditTask(modalBackDrop) {
-  bodyNode.classList.remove("modal-open");
-  exampleModalNode.classList.remove("show");
-  exampleModalNode.style.cssText = `aria-hidden="true"; display: none`;
-
-  modalBackDrop.classList.remove("modal-backdrop");
-  modalBackDrop.classList.remove("fade");
-  modalBackDrop.classList.remove("show");
-}
+//   for (let name of namePriorityNode) {
+//     name.getAttribute("data-task", id);
+//     if (name.checked === true) {
+//       task.priority = name.value;
+//     }
+//   }
+// }
 
 function editTask(e) {
   if (e.target.classList.contains("btn-info")) {
-    for (let prop of e.currentTarget.children) {
-      if (prop.dataset.task === e.target.dataset.task) {
-        let idIndex = array
-          .map((item) => item.id)
-          .indexOf(Number(prop.dataset.task));
+    let liNode = e.target.parentNode.parentNode.parentNode;
+    if (liNode.dataset.task === e.target.dataset.task) {
+      e.target.dataset.toggle = "modal";
+      e.target.dataset.target = "#exampleModal";
 
-        openEditTask(array[idIndex], Number(prop.dataset.task));
+      array.map((task) => {
+        if (task.id === Number(liNode.dataset.task)) {
+          inputTitleNode.value = task.title;
+          inputTextNode.value = task.text;
+          task.isEdit = true;
 
-        let modalBackDropNode = document.createElement("div");
-        modalBackDropNode.classList.add("modal-backdrop");
-        modalBackDropNode.classList.add("fade");
-        modalBackDropNode.classList.add("show");
-        bodyNode.append(modalBackDropNode);
+          let namePriorityNode = document.querySelectorAll(
+            "input[name=gridRadios]"
+          );
 
-        let btnSaveNode = exampleModalNode.querySelector(".btn-primary");
-        btnSaveNode.textContent = "Save task";
-        btnSaveNode.setAttribute("data-task", prop.dataset.task);
-
-        btnSaveNode.addEventListener("click", (e) => {
-          if (e.target.dataset.task === prop.dataset.task) {
+          for (let name of namePriorityNode) {
+            name.setAttribute("data-task", Number(liNode.dataset.task));
+            if (name.value === task.priority) {
+              name.checked = true;
+            }
           }
+        }
+      });
 
+      let btnSaveNode = exampleModalNode.querySelector(".btn-primary");
+      btnSaveNode.textContent = "Save task";
+
+      btnSaveNode.addEventListener("click", (e) => {
+        if (e.target.dataset.task === Number(liNode.dataset.task)) {
           btnSaveNode.textContent = "Add task";
-          closeEditTask(modalBackDropNode);
-        });
+        }
+      });
 
-        localStorage.setItem("tasks", JSON.stringify(array));
-      }
+      localStorage.setItem("tasks", JSON.stringify(array));
     }
   }
 }
 
-function handleSort(e) {
-  if (e.currentTarget === btnSortInc) {
-    sortInc();
-  }
+function updateTask(array, id, changeArray) {
+  const index = array.findIndex((a) => a.id === id);
 
-  if (e.currentTarget === btnSortDesc) {
-    sortDesc();
-  }
+  if (index === -1) return array;
+
+  return [
+    ...array.slice(0, index),
+    { ...changeArray, id },
+    ...array.slice(index + 1),
+  ];
+}
+
+function handleSort(e) {
+  sortTasks(e.currentTarget);
 
   let liArrayNode = document.querySelectorAll("li");
   let ulArrayNode = document.querySelectorAll("ul");
@@ -277,45 +252,18 @@ function handleSort(e) {
   localStorage.setItem("tasks", JSON.stringify(array));
 }
 
-function lightTheme() {
-  bodyNode.style.cssText = `background-color: #fff; color: #3D3D3D`;
-  exampleModalContentNode.style.cssText = `background-color: #fff; color: #3D3D3D`;
-  btnChangeTheme.textContent = "DARK THEME";
-  btnChangeTheme.classList.remove("btn-light");
-  btnChangeTheme.classList.add("btn-dark");
-  navigationNode.classList.remove("bg-dark");
-  navigationNode.classList.add("bg-light");
-}
-
-function parseDate(date) {
-  let arrDate = Array.from(date.replace(/\D/g, ""));
-
-  let year = arrDate.slice(-4).join("");
-  let month = arrDate.slice(-6, -4).join("");
-  let day = arrDate.slice(-8, -6).join("");
-  let hour = arrDate.slice(0, 2).join("");
-  let min = arrDate.slice(2, 4).join("");
-
-  return Date.parse(`${year}-${month}-${day}T${hour}:${min}:00`);
-}
-
 function removeTask(e) {
   if (e.target.classList.contains("btn-danger")) {
+    let liNode = e.target.parentNode.parentNode.parentNode;
     if (confirm("Are you sure?")) {
-      for (let prop of e.currentTarget.children) {
-        if (prop.dataset.task === e.target.dataset.task) {
-          let idIndex = array
-            .map((item) => item.id)
-            .indexOf(Number(prop.dataset.task));
+      if (liNode.dataset.task === e.target.dataset.task) {
+        array = array.filter((task) => task.id !== Number(liNode.dataset.task));
 
-          array.splice(idIndex, 1);
+        e.currentTarget.removeChild(liNode);
 
-          localStorage.setItem("tasks", JSON.stringify(array));
+        localStorage.setItem("tasks", JSON.stringify(array));
 
-          e.currentTarget.removeChild(prop);
-
-          countTasks();
-        }
+        countTasks();
       }
     }
   }
@@ -323,17 +271,28 @@ function removeTask(e) {
 
 function resetForm(form) {
   form.reset();
-  [...document.querySelectorAll('[type="text"]')].forEach((input) => {
-    input.value = "";
-  });
 }
 
-function sortDesc() {
-  array.sort((a, b) => parseDate(b.date) - parseDate(a.date));
+function setTheme(theme) {
+  if (theme === "dark") {
+    bodyNode.style.cssText = `background-color: #0F1A20; color: #c5cddb`;
+    exampleModalContentNode.style.cssText = `background-color: #0F1A20; color: #c5cddb`;
+    navigationNode.classList.remove("bg-light");
+    navigationNode.classList.add("bg-dark");
+  } else if (theme === "light") {
+    bodyNode.style.cssText = `background-color: #fff; color: #3D3D3D`;
+    exampleModalContentNode.style.cssText = `background-color: #fff; color: #3D3D3D`;
+    navigationNode.classList.remove("bg-dark");
+    navigationNode.classList.add("bg-light");
+  }
+
+  localStorage.setItem("theme", JSON.stringify(theme));
 }
 
-function sortInc() {
-  array.sort((a, b) => parseDate(a.date) - parseDate(b.date));
+function sortTasks(e) {
+  e === btnSortACSNode
+    ? array.sort((a, b) => a.id - b.id)
+    : array.sort((a, b) => b.id - a.id);
 }
 
 function submitForm(e) {
@@ -347,15 +306,14 @@ function submitForm(e) {
     text: inputTextNode.value,
     color: createRandomColor(),
     isComplete: false,
+    isEdit: false,
   };
 
   array.push(task);
+  createTask(task);
+  resetForm(formNode);
 
   localStorage.setItem("tasks", JSON.stringify(array));
-
-  createTask(task);
-
-  resetForm(formNode);
 }
 
 formNode.addEventListener("submit", submitForm);
@@ -363,12 +321,15 @@ formNode.addEventListener("submit", submitForm);
 currentTasksNode.addEventListener("click", removeTask);
 completedTasksNode.addEventListener("click", removeTask);
 
-// currentTasksNode.addEventListener("click", editTask);
+currentTasksNode.addEventListener("click", editTask);
 
 currentTasksNode.addEventListener("click", completeTask);
 
-btnSortInc.addEventListener("click", handleSort);
-btnSortDesc.addEventListener("click", handleSort);
-btnChangeTheme.addEventListener("click", changeTheme);
+btnSortACSNode.addEventListener("click", handleSort);
+btnSortDSCNode.addEventListener("click", handleSort);
+
+for (let btn of btnsSwitchThemeNode) {
+  btn.addEventListener("click", changeTheme);
+}
 
 console.log(array);
