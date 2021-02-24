@@ -14,6 +14,7 @@ completedNode.appendChild(spanCompletedNode);
 
 const exampleModalNode = document.getElementById("exampleModal");
 const exampleModalContentNode = document.getElementById("exampleModalContent");
+const exampleModalLabelNode = document.getElementById("exampleModalLabel");
 
 const formNode = document.getElementById("modalForm");
 const inputTitleNode = document.getElementById("inputTitle");
@@ -23,12 +24,14 @@ const mediumPriorityNode = document.getElementById("Medium");
 const highPriorityNode = document.getElementById("High");
 const divBtnModalNode = document.getElementById("divBtnModal");
 
+const bntAddModalNode = document.getElementById("btnAddModal");
 const btnSortDSCNode = document.getElementById("btnSortDSC");
 const btnSortACSNode = document.getElementById("btnSortACS");
 const btnsSwitchThemeNode = document.querySelectorAll(".btn-switch");
 
 let array = JSON.parse(localStorage.getItem("tasks")) || [];
 let theme = JSON.parse(localStorage.getItem("theme"));
+let isEdit = true;
 
 if (localStorage.getItem("tasks")) {
   array.forEach((item) => createTask(item));
@@ -90,7 +93,7 @@ function createBtnForIsCompleteTask(isComplete, id) {
   if (isComplete === false) {
     const threeBtnNode = `<div class="dropdown-menu p-2 flex-column" aria-labelledby="dropdownMenuItem1">
                             <button data-task=${id} type="button" class="btn btn-success w-100">Complete</button>
-                            <button data-task=${id} type="button" class="btn btn-info w-100 my-2">Edit</button>
+                            <button data-task=${id} data-toggle="modal" data-target="#exampleModal" type="button" class="btn btn-info w-100 my-2">Edit</button>
                             <button data-task=${id} type="button" class="btn btn-danger w-100">Delete</button>
                         </div>`;
 
@@ -134,7 +137,9 @@ function createTask(task) {
     task.color
   }">
   <div class="w-100 mr-2"><div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1 task__title">${task.title}</h5>
+                                <h5 data-task=${
+                                  task.id
+                                } class="mb-1 task__title">${task.title}</h5>
                                 <div> <small data-task=${
                                   task.id
                                 } class="mr-2 task__priority">${
@@ -168,71 +173,70 @@ function createTask(task) {
   return taskNode;
 }
 
-// function saveEditTask(modalBackDropNode, task, id) {
-//   task.title = inputTitleNode.value;
-//   task.text = inputTextNode.value;
-//   task.isEdit = true;
+function openAddModalWindow() {
+  isEdit = false;
+  let btnSaveNode = exampleModalNode.querySelector(".btn-primary");
+  btnSaveNode.textContent = "Add task";
+  exampleModalLabelNode.textContent = "Add task";
+  resetForm(formNode);
+}
 
-//   let namePriorityNode = document.querySelectorAll("input[name=gridRadios]");
+function openEditModalWindow(id) {
+  isEdit = true;
+  let btnSaveNode = exampleModalNode.querySelector(".btn-primary");
+  btnSaveNode.textContent = "Save task";
+  exampleModalLabelNode.textContent = "Edit task";
+  formNode.setAttribute("data-task", Number(id));
+  array.map((task) => {
+    if (task.id === Number(id)) {
+      inputTitleNode.value = task.title;
+      inputTextNode.value = task.text;
 
-//   for (let name of namePriorityNode) {
-//     name.getAttribute("data-task", id);
-//     if (name.checked === true) {
-//       task.priority = name.value;
-//     }
-//   }
-// }
+      let namePriorityNode = document.querySelectorAll(
+        "input[name=gridRadios]"
+      );
 
-function editTask(e) {
+      for (let name of namePriorityNode) {
+        name.setAttribute("data-task", Number(id));
+        if (name.value === task.priority) {
+          name.checked = true;
+        }
+      }
+    }
+  });
+}
+
+function openEditTask(e) {
   if (e.target.classList.contains("btn-info")) {
     let liNode = e.target.parentNode.parentNode.parentNode;
     if (liNode.dataset.task === e.target.dataset.task) {
-      e.target.dataset.toggle = "modal";
-      e.target.dataset.target = "#exampleModal";
-
-      array.map((task) => {
-        if (task.id === Number(liNode.dataset.task)) {
-          inputTitleNode.value = task.title;
-          inputTextNode.value = task.text;
-          task.isEdit = true;
-
-          let namePriorityNode = document.querySelectorAll(
-            "input[name=gridRadios]"
-          );
-
-          for (let name of namePriorityNode) {
-            name.setAttribute("data-task", Number(liNode.dataset.task));
-            if (name.value === task.priority) {
-              name.checked = true;
-            }
-          }
-        }
-      });
-
-      let btnSaveNode = exampleModalNode.querySelector(".btn-primary");
-      btnSaveNode.textContent = "Save task";
-
-      btnSaveNode.addEventListener("click", (e) => {
-        if (e.target.dataset.task === Number(liNode.dataset.task)) {
-          btnSaveNode.textContent = "Add task";
-        }
-      });
-
-      localStorage.setItem("tasks", JSON.stringify(array));
+      openEditModalWindow(liNode.dataset.task);
     }
   }
 }
 
-function updateTask(array, id, changeArray) {
-  const index = array.findIndex((a) => a.id === id);
+function updateTask() {
+  for (let prop of currentTasksNode.children) {
+    if (Number(formNode.dataset.task) === Number(prop.dataset.task)) {
+      let titleTaskNode = prop.querySelector(".task__title");
+      let textTaskNode = prop.querySelector(".task__text");
+      let priorityTaskNode = prop.querySelector(".task__priority");
 
-  if (index === -1) return array;
+      titleTaskNode.innerHTML = inputTitleNode.value;
+      textTaskNode.innerHTML = inputTextNode.value;
+      priorityTaskNode.innerHTML = `${checkPriority()} priority`;
+    }
+  }
 
-  return [
-    ...array.slice(0, index),
-    { ...changeArray, id },
-    ...array.slice(index + 1),
-  ];
+  array.filter((task) => {
+    if (task.id === Number(formNode.dataset.task)) {
+      task.title = inputTitleNode.value;
+      task.text = inputTextNode.value;
+      task.priority = checkPriority();
+    }
+  });
+
+  resetForm(formNode);
 }
 
 function handleSort(e) {
@@ -306,24 +310,28 @@ function submitForm(e) {
     text: inputTextNode.value,
     color: createRandomColor(),
     isComplete: false,
-    isEdit: false,
   };
 
-  array.push(task);
-  createTask(task);
-  resetForm(formNode);
+  if (isEdit === true) {
+    updateTask();
+  } else {
+    array.push(task);
+    createTask(task);
+    resetForm(formNode);
+  }
 
   localStorage.setItem("tasks", JSON.stringify(array));
 }
 
 formNode.addEventListener("submit", submitForm);
+
 currentTasksNode.addEventListener("click", removeTask);
-completedTasksNode.addEventListener("click", removeTask);
-
-currentTasksNode.addEventListener("click", editTask);
-
+currentTasksNode.addEventListener("click", openEditTask);
 currentTasksNode.addEventListener("click", completeTask);
 
+completedTasksNode.addEventListener("click", removeTask);
+
+bntAddModalNode.addEventListener("click", openAddModalWindow);
 btnSortACSNode.addEventListener("click", handleSort);
 btnSortDSCNode.addEventListener("click", handleSort);
 
