@@ -317,7 +317,6 @@ function submitForm(e) {
 }
 
 formNode.addEventListener("submit", submitForm);
-
 currentTasksNode.addEventListener("click", removeTask);
 completedTasksNode.addEventListener("click", removeTask);
 
