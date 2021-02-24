@@ -173,6 +173,23 @@ function createTask(task) {
   return taskNode;
 }
 
+function handleSort(e) {
+  sortTasks(e.currentTarget);
+
+  let liArrayNode = document.querySelectorAll("li");
+  let ulArrayNode = document.querySelectorAll("ul");
+
+  for (let i = 0; i < ulArrayNode.length; i++) {
+    for (let j = 0; j < liArrayNode.length; j++) {
+      liArrayNode[j].remove(ulArrayNode[i]);
+    }
+  }
+
+  array.map((item) => createTask(item));
+
+  localStorage.setItem("tasks", JSON.stringify(array));
+}
+
 function openAddModalWindow() {
   isEdit = false;
   let btnSaveNode = exampleModalNode.querySelector(".btn-primary");
@@ -213,47 +230,6 @@ function openEditTask(e) {
       openEditModalWindow(liNode.dataset.task);
     }
   }
-}
-
-function updateTask() {
-  for (let prop of currentTasksNode.children) {
-    if (Number(formNode.dataset.task) === Number(prop.dataset.task)) {
-      let titleTaskNode = prop.querySelector(".task__title");
-      let textTaskNode = prop.querySelector(".task__text");
-      let priorityTaskNode = prop.querySelector(".task__priority");
-
-      titleTaskNode.innerHTML = inputTitleNode.value;
-      textTaskNode.innerHTML = inputTextNode.value;
-      priorityTaskNode.innerHTML = `${checkPriority()} priority`;
-    }
-  }
-
-  array.filter((task) => {
-    if (task.id === Number(formNode.dataset.task)) {
-      task.title = inputTitleNode.value;
-      task.text = inputTextNode.value;
-      task.priority = checkPriority();
-    }
-  });
-
-  resetForm(formNode);
-}
-
-function handleSort(e) {
-  sortTasks(e.currentTarget);
-
-  let liArrayNode = document.querySelectorAll("li");
-  let ulArrayNode = document.querySelectorAll("ul");
-
-  for (let i = 0; i < ulArrayNode.length; i++) {
-    for (let j = 0; j < liArrayNode.length; j++) {
-      liArrayNode[j].remove(ulArrayNode[i]);
-    }
-  }
-
-  array.map((item) => createTask(item));
-
-  localStorage.setItem("tasks", JSON.stringify(array));
 }
 
 function removeTask(e) {
@@ -321,6 +297,30 @@ function submitForm(e) {
   }
 
   localStorage.setItem("tasks", JSON.stringify(array));
+}
+
+function updateTask() {
+  for (let prop of currentTasksNode.children) {
+    if (Number(formNode.dataset.task) === Number(prop.dataset.task)) {
+      let titleTaskNode = prop.querySelector(".task__title");
+      let textTaskNode = prop.querySelector(".task__text");
+      let priorityTaskNode = prop.querySelector(".task__priority");
+
+      titleTaskNode.innerHTML = inputTitleNode.value;
+      textTaskNode.innerHTML = inputTextNode.value;
+      priorityTaskNode.innerHTML = `${checkPriority()} priority`;
+    }
+  }
+
+  array.filter((task) => {
+    if (task.id === Number(formNode.dataset.task)) {
+      task.title = inputTitleNode.value;
+      task.text = inputTextNode.value;
+      task.priority = checkPriority();
+    }
+  });
+
+  resetForm(formNode);
 }
 
 formNode.addEventListener("submit", submitForm);
