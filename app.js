@@ -297,6 +297,8 @@ function submitForm(e) {
   }
 
   localStorage.setItem("tasks", JSON.stringify(array));
+
+  $("#exampleModal").modal("hide");
 }
 
 function updateTask() {
