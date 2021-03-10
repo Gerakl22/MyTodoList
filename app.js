@@ -46,7 +46,6 @@ function appendZero(n) {
 function changeTheme() {
   let theme = this.dataset.theme;
   setTheme(theme);
-  localStorage.setItem("theme", JSON.stringify(theme));
 }
 
 function checkPriority() {
@@ -204,7 +203,8 @@ function openEditModalWindow(id) {
   btnSaveNode.textContent = "Save task";
   exampleModalLabelNode.textContent = "Edit task";
   formNode.setAttribute("data-task", Number(id));
-  array.map((task) => {
+
+  array.find((task) => {
     if (task.id === Number(id)) {
       inputTitleNode.value = task.title;
       inputTextNode.value = task.text;
